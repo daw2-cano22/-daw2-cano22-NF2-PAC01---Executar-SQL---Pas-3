@@ -32,11 +32,13 @@ abstract class DataBoundObject {
         }
         $strQuery = substr($strQuery, 0, strlen($strQuery)-1);
         $strQuery .= " FROM " . $this->strTableName . " WHERE \"id\" = :eid";
+        //echo $strQuery."<br>".$this->ID."<br>";
         $objStatement = $this->objPDO->prepare($strQuery);
         $objStatement->bindParam(':eid', $this->ID, PDO::PARAM_INT);
         $objStatement->execute();
         $arRow = $objStatement->fetch(PDO::FETCH_ASSOC);
-        foreach($arRow as $key => $value) {
+        //var_dump($arRow);
+        foreach($arRow as $key=>$value) {
             $strMember = $this->arRelationMap[$key];
             if (property_exists($this, $strMember)) {
                 if (is_numeric($value)) {
@@ -75,6 +77,7 @@ abstract class DataBoundObject {
             };
          };
          $objStatement->execute();
+         //$this->log->logMessage('Update Correct', Logger::INFO);
       } else {
          $strValueList = "";
          $strQuery = 'INSERT INTO "' . $this->strTableName . '"(';
@@ -108,7 +111,8 @@ abstract class DataBoundObject {
             };
          }
          $objStatement->execute();
-         $this->ID = $this->objPDO->lastInsertId($this->strTableName . "_id_seq");
+         $this->ID = $this->objPDO->lastInsertId();
+         
       }
    }
 
@@ -123,6 +127,7 @@ abstract class DataBoundObject {
             $objStatement = $this->objPDO->prepare($strQuery);
             $objStatement->bindValue(':eid', $this->ID, PDO::PARAM_INT);   
             $objStatement->execute();
+            
          };
       }
    }
@@ -149,12 +154,15 @@ abstract class DataBoundObject {
             eval('$this->' . $strMember . ' = "' . $strNewValue . '";');
          };
          $this->arModifiedRelations[$strMember] = "1";
-      } else {
+         return $this; 
+      }else {
          return(false);
-      };   
+      };
+        
    }
 
    private function GetAccessor($strMember) {
+
       if ($this->blIsLoaded != true) {
          $this->Load();
       }
@@ -167,4 +175,5 @@ abstract class DataBoundObject {
    }
    
 }
+
 ?>
